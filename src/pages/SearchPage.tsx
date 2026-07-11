@@ -84,8 +84,7 @@ export default function SearchPage() {
         {meta && (
           <p className="search-stats">
             {meta.mappingCount.toLocaleString()} mappings · {meta.universityCount} partner
-            universities · {meta.nusCourseCount} NUS courses · {meta.faculties.join(', ')} · AY
-            {meta.acadYear.replace('-', '/')}
+            universities · {meta.nusCourseCount} NUS courses
           </p>
         )}
         <div className="search-controls">
