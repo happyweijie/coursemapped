@@ -78,7 +78,7 @@ export default function BasketPage() {
           {basket.length} {basket.length === 1 ? 'course' : 'courses'} across {groups.length}{' '}
           {groups.length === 1 ? 'university' : 'universities'}
         </p>
-        <CopyLinkButton label="Share basket" getUrl={() => shareUrl(basket)} />
+        <CopyLinkButton label="Share" getUrl={() => shareUrl(basket)} />
       </div>
 
       {groups.map((g) => (
@@ -97,7 +97,7 @@ export default function BasketPage() {
                 className="btn btn-danger"
                 onClick={() => handleRemoveUniversity(g.university, g.rows.length)}
               >
-                Remove university
+                Remove
               </button>
             </>
           }

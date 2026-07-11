@@ -127,12 +127,19 @@ a {
 }
 
 .icon-btn {
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.3rem 0.5rem;
+  padding: 0.35rem 0.5rem;
   cursor: pointer;
-  font-size: 1rem;
+  color: var(--text);
+}
+
+.icon-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* ---------- Search ---------- */
@@ -236,10 +243,11 @@ a {
 }
 
 .fav-btn {
+  display: inline-flex;
+  align-items: center;
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1.15rem;
   line-height: 1;
   padding: 0 0.1rem;
   color: var(--muted);
@@ -348,6 +356,9 @@ a {
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   font-size: 0.8rem;
   font-weight: 600;
   border-radius: 8px;
@@ -357,6 +368,11 @@ a {
   background: var(--card);
   color: var(--text);
   white-space: nowrap;
+}
+
+.btn:disabled {
+  cursor: default;
+  opacity: 0.7;
 }
 
 .btn:hover {

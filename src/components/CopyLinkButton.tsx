@@ -1,3 +1,4 @@
+import { Check, Link2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 interface Props {
@@ -27,7 +28,15 @@ export default function CopyLinkButton({ getUrl, label = 'Share' }: Props) {
 
   return (
     <button type="button" className="btn btn-accent" onClick={copy}>
-      {copied ? '✓ Copied!' : `🔗 ${label}`}
+      {copied ? (
+        <>
+          <Check size={14} /> Copied!
+        </>
+      ) : (
+        <>
+          <Link2 size={14} /> {label}
+        </>
+      )}
     </button>
   );
 }

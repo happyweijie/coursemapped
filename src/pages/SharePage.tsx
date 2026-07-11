@@ -1,3 +1,4 @@
+import { Check, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import UniversityGroup from '../components/UniversityGroup';
@@ -58,7 +59,15 @@ export default function SharePage() {
           disabled={newCount === 0}
           onClick={() => addToBasket(resolved.found.map(toBasketKey))}
         >
-          {newCount === 0 ? '✓ All in your basket' : `+ Add all to my basket (${newCount} new)`}
+          {newCount === 0 ? (
+            <>
+              <Check size={14} /> All in your basket
+            </>
+          ) : (
+            <>
+              <Plus size={14} /> Add all to my basket ({newCount} new)
+            </>
+          )}
         </button>
       </div>
 
@@ -76,7 +85,15 @@ export default function SharePage() {
                 disabled={groupNew === 0}
                 onClick={() => addToBasket(g.rows.map(toBasketKey))}
               >
-                {groupNew === 0 ? '✓ Added' : `+ Add ${groupNew} to basket`}
+                {groupNew === 0 ? (
+                  <>
+                    <Check size={14} /> Added
+                  </>
+                ) : (
+                  <>
+                    <Plus size={14} /> Add {groupNew} to basket
+                  </>
+                )}
               </button>
             }
             renderRowAction={(row) =>
@@ -88,7 +105,7 @@ export default function SharePage() {
                   className="btn btn-accent"
                   onClick={() => addToBasket([toBasketKey(row)])}
                 >
-                  + Basket
+                  <Plus size={14} /> Basket
                 </button>
               )
             }

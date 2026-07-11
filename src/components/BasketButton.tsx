@@ -1,3 +1,4 @@
+import { Check, Plus } from 'lucide-react';
 import { addToBasket, keyId, removeFromBasket, toBasketKey, useBasket } from '../lib/basket';
 import type { MappingRow } from '../lib/types';
 
@@ -8,11 +9,11 @@ export default function BasketButton({ row }: { row: MappingRow }) {
   const inBasket = basket.some((k) => keyId(k) === keyId(key));
   return inBasket ? (
     <button type="button" className="btn btn-ghost" onClick={() => removeFromBasket(key)}>
-      ✓ Added
+      <Check size={14} /> Added
     </button>
   ) : (
     <button type="button" className="btn btn-accent" onClick={() => addToBasket([key])}>
-      + Basket
+      <Plus size={14} /> Basket
     </button>
   );
 }

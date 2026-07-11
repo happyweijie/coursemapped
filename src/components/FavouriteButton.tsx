@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react';
 import { toggleFavourite, useFavourites } from '../lib/favourites';
 
 /** Star toggle for a partner university, shown in every group header. */
@@ -16,7 +17,7 @@ export default function FavouriteButton({ university }: { university: string }) 
       aria-label={label}
       title={label}
     >
-      {active ? '★' : '☆'}
+      <Star size={18} fill={active ? 'currentColor' : 'none'} />
     </button>
   );
 }
