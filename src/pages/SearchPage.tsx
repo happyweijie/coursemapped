@@ -1,0 +1,128 @@
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import BasketButton from '../components/BasketButton';
+import UniversityGroup from '../components/UniversityGroup';
+import { fetchMeta, fetchUniversities, searchMappings } from '../lib/api';
+import { groupByUniversity } from '../lib/group';
+import type { MetaResponse, SearchResponse, UniversitySummary } from '../lib/types';
+
+const DEBOUNCE_MS = 250;
+
+export default function SearchPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
+  const [university, setUniversity] = useState(searchParams.get('university') ?? '');
+  const [result, setResult] = useState<SearchResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<MetaResponse | null>(null);
+  const [universities, setUniversities] = useState<UniversitySummary[]>([]);
+
+  useEffect(() => {
+    fetchMeta().then(setMeta).catch(() => {});
+    fetchUniversities().then(setUniversities).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const hasFilter = query.trim() !== '' || university !== '';
+    const timer = setTimeout(() => {
+      // Keep the URL shareable/bookmarkable.
+      const params: Record<string, string> = {};
+      if (query.trim()) params.q = query;
+      if (university) params.university = university;
+      setSearchParams(params, { replace: true });
+
+      if (!hasFilter) {
+        setResult(null);
+        setError(null);
+        return;
+      }
+      setLoading(true);
+      searchMappings(query, university || undefined)
+        .then((r) => {
+          setResult(r);
+          setError(null);
+        })
+        .catch(() => setError('Search failed — is the API server running?'))
+        .finally(() => setLoading(false));
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [query, university, setSearchParams]);
+
+  const groups = result ? groupByUniversity(result.rows) : [];
+
+  return (
+    <div>
+      <div className="search-hero">
+        <h1>Find exchange mappings for your NUS courses</h1>
+        {meta && (
+          <p className="search-stats">
+            {meta.mappingCount.toLocaleString()} mappings · {meta.universityCount} partner
+            universities · {meta.nusCourseCount} NUS courses · {meta.faculties.join(', ')} · AY
+            {meta.acadYear.replace('-', '/')}
+          </p>
+        )}
+        <div className="search-controls">
+          <input
+            type="search"
+            className="search-input"
+            placeholder="Search by course code or title, e.g. CS2102 or Machine Learning"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            autoFocus
+          />
+          <select
+            className="uni-filter"
+            value={university}
+            onChange={(e) => setUniversity(e.target.value)}
+            aria-label="Filter by partner university"
+          >
+            <option value="">All partner universities</option>
+            {universities.map((u) => (
+              <option key={u.name} value={u.name}>
+                {u.name} ({u.mappingCount})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {error && <p className="notice notice-error">{error}</p>}
+      {loading && <p className="notice">Searching…</p>}
+      {result && !loading && (
+        <>
+          {result.truncated && (
+            <p className="notice">
+              Showing the first {result.rows.length.toLocaleString()} results — refine your search
+              to see everything.
+            </p>
+          )}
+          {groups.length === 0 ? (
+            <p className="notice">No mappings found. Try a broader search term.</p>
+          ) : (
+            <p className="result-summary">
+              {result.rows.length.toLocaleString()} {result.rows.length === 1 ? 'mapping' : 'mappings'}
+              {' across '}
+              {groups.length} {groups.length === 1 ? 'university' : 'universities'}
+            </p>
+          )}
+          {groups.map((g) => (
+            <UniversityGroup
+              key={g.university}
+              university={g.university}
+              rows={g.rows}
+              renderRowAction={(row) => <BasketButton row={row} />}
+            />
+          ))}
+        </>
+      )}
+      {!result && !loading && !error && (
+        <p className="notice notice-hint">
+          Start typing an NUS course code (e.g. <strong>CS3244</strong>), a course title, or a
+          partner university name to see every mapping at once — no more scrolling through the
+          EduRec table.
+        </p>
+      )}
+    </div>
+  );
+}
