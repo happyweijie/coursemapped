@@ -119,8 +119,7 @@ export default function SearchPage() {
       {!result && !loading && !error && (
         <p className="notice notice-hint">
           Start typing an NUS course code (e.g. <strong>CS3244</strong>), a course title, or a
-          partner university name to see every mapping at once — no more scrolling through the
-          EduRec table.
+          partner university name to see every mapping at once.
         </p>
       )}
     </div>
