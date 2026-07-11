@@ -1,6 +1,7 @@
 import argparse
 import email
 import csv
+import itertools
 import sys
 from bs4 import BeautifulSoup
 
@@ -84,13 +85,57 @@ def scrape_mappings(mhtml_path, csv_path):
                 
                 faculty = get_clean_text(tds[0])
                 partner_univ = get_clean_text(tds[1])
-                pu_code = get_clean_text(tds[2])
-                pu_title = get_clean_text(tds[3])
-                pu_units = get_clean_text(tds[4])
-                
-                nus_code = get_clean_text(tds[8])
-                nus_title = get_clean_text(tds[9])
-                nus_units = get_clean_text(tds[10])
+                if not partner_univ:
+                    print(f"Warning: Missing partner university in row with ID {row.get('id')}. Skipping this row.")
+                    print(f"Row content: {[get_clean_text(td) for td in tds]}")
+                    continue
+
+                partner_uni_courses = []
+                pu_code1 = get_clean_text(tds[2])
+                pu_title1 = get_clean_text(tds[3])
+                pu_units1 = get_clean_text(tds[4])
+                if pu_code1 and pu_title1 and pu_units1:
+                    partner_uni_courses.append(
+                        (pu_code1, pu_title1, pu_units1)
+                        )
+
+                pu_code2 = get_clean_text(tds[5])
+                pu_title2 = get_clean_text(tds[6])
+                pu_units2 = get_clean_text(tds[7])
+                if pu_code2 and pu_title2 and pu_units2:
+                    partner_uni_courses.append(
+                        (pu_code2, pu_title2, pu_units2)
+                    )
+
+                if not partner_uni_courses:
+                    print(f"Warning: No valid partner university courses found in row with ID {row.get('id')}. Skipping this row.")
+                    print(f"Row content: {[get_clean_text(td) for td in tds]}")
+                    continue
+
+                nus_courses = []
+
+                # Extract NUS course details from columns 8-13
+                # more lenient since course title/units can be recovered
+                nus_code1 = get_clean_text(tds[8])
+                nus_title1 = get_clean_text(tds[9])
+                nus_units1 = get_clean_text(tds[10])
+                if nus_code1:
+                    nus_courses.append(
+                        (nus_code1, nus_title1, nus_units1)
+                    )
+
+                nus_code2 = get_clean_text(tds[11])
+                nus_title2 = get_clean_text(tds[12])
+                nus_units2 = get_clean_text(tds[13])
+                if nus_code2:
+                    nus_courses.append(
+                        (nus_code2, nus_title2, nus_units2)
+                    )
+
+                if not nus_courses:
+                    print(f"Warning: No valid NUS courses found in row with ID {row.get('id')}. Skipping this row.")
+                    print(f"Row content: {[get_clean_text(td) for td in tds]}")
+                    continue
                 
                 # Checkbox check: look for an input checkbox in Col 14
                 checkbox = tds[14].find('input', type='checkbox')
@@ -98,18 +143,21 @@ def scrape_mappings(mhtml_path, csv_path):
                 if checkbox:
                     pre_approved = checkbox.has_attr('checked')
                 
-                writer.writerow([
-                    faculty,
-                    partner_univ,
-                    pu_code,
-                    pu_title,
-                    pu_units,
-                    nus_code,
-                    nus_title,
-                    nus_units,
-                    pre_approved
-                ])
-                written_count += 1
+                # write the first course mapping entry to CSV
+                cross_product = itertools.product(partner_uni_courses, nus_courses)
+                for pu_course, nus_course in cross_product:
+                    writer.writerow([
+                        faculty,
+                        partner_univ,
+                        pu_course[0],
+                        pu_course[1],
+                        pu_course[2],
+                        nus_course[0],
+                        nus_course[1],
+                        nus_course[2],
+                        pre_approved
+                    ])
+                    written_count += 1
                 
         print(f"Successfully scraped and wrote {written_count} course mapping entries to {csv_path}.")
     except Exception as e:
