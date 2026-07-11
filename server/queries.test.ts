@@ -4,25 +4,31 @@ import { openDb } from './db';
 import { getMeta, listUniversities, resolveKeys, searchMappings } from './queries';
 
 function seedFixture(db: Database.Database) {
-  db.prepare('INSERT INTO faculties (id, name) VALUES (1, ?)').run('School of Computing');
+  const insertFaculty = db.prepare('INSERT INTO faculties (id, name) VALUES (?, ?)');
+  insertFaculty.run(1, 'School of Computing');
+  insertFaculty.run(2, 'NUS Business School');
   const insertUni = db.prepare('INSERT INTO universities (id, name) VALUES (?, ?)');
   insertUni.run(1, 'ETH Zurich');
   insertUni.run(2, 'Aalto University');
+  insertUni.run(3, 'Copenhagen Business School');
   const insertNus = db.prepare('INSERT INTO nus_courses (code, title, units) VALUES (?, ?, ?)');
   insertNus.run('CS3244', 'Machine Learning', 4);
   insertNus.run('CS2102', 'Database Systems', 4);
+  insertNus.run('MKT1705X', 'Principles of Marketing', 4);
   const insertPu = db.prepare(
     'INSERT INTO pu_courses (id, university_id, code, title, units) VALUES (?, ?, ?, ?, ?)',
   );
   insertPu.run(1, 1, '227-0105-00L', 'Intro to Estimation and Machine Learning', 6);
   insertPu.run(2, 1, '252-0063-00L', 'Data Modelling and Databases', 7);
   insertPu.run(3, 2, 'CS-E4820', 'Advanced Probabilistic Methods', 5);
+  insertPu.run(4, 3, 'BMKT10', 'Marketing Fundamentals', 7.5);
   const insertMapping = db.prepare(
-    'INSERT INTO mappings (faculty_id, pu_course_id, nus_course_code, pre_approved) VALUES (1, ?, ?, ?)',
+    'INSERT INTO mappings (faculty_id, pu_course_id, nus_course_code, pre_approved) VALUES (?, ?, ?, ?)',
   );
-  insertMapping.run(1, 'CS3244', 1);
-  insertMapping.run(2, 'CS2102', 0);
-  insertMapping.run(3, 'CS3244', 0);
+  insertMapping.run(1, 1, 'CS3244', 1);
+  insertMapping.run(1, 2, 'CS2102', 0);
+  insertMapping.run(1, 3, 'CS3244', 0);
+  insertMapping.run(2, 4, 'MKT1705X', 0);
 }
 
 describe('queries', () => {
@@ -58,6 +64,19 @@ describe('queries', () => {
     expect(searchMappings(db, '   ').rows).toHaveLength(0);
   });
 
+  it('filters by faculty', () => {
+    const { rows } = searchMappings(db, 'marketing', undefined, 'NUS Business School');
+    expect(rows).toHaveLength(1);
+    expect(rows[0].university).toBe('Copenhagen Business School');
+    expect(searchMappings(db, 'marketing', undefined, 'School of Computing').rows).toHaveLength(0);
+  });
+
+  it('browses a whole faculty with an empty query', () => {
+    const { rows } = searchMappings(db, '', undefined, 'School of Computing');
+    expect(rows).toHaveLength(3);
+    expect(rows.every((r) => r.nusCode.startsWith('CS'))).toBe(true);
+  });
+
   it('resolves basket keys and reports missing ones', () => {
     const { found, missing } = resolveKeys(db, [
       { u: 'ETH Zurich', p: '227-0105-00L', n: 'CS3244' },
@@ -71,15 +90,26 @@ describe('queries', () => {
   it('lists universities with mapping counts', () => {
     expect(listUniversities(db)).toEqual([
       { name: 'Aalto University', mappingCount: 1 },
+      { name: 'Copenhagen Business School', mappingCount: 1 },
       { name: 'ETH Zurich', mappingCount: 2 },
+    ]);
+  });
+
+  it('lists only universities with mappings in the given faculty', () => {
+    expect(listUniversities(db, 'NUS Business School')).toEqual([
+      { name: 'Copenhagen Business School', mappingCount: 1 },
+    ]);
+    expect(listUniversities(db, 'School of Computing').map((u) => u.name)).toEqual([
+      'Aalto University',
+      'ETH Zurich',
     ]);
   });
 
   it('reports meta counts', () => {
     const meta = getMeta(db);
-    expect(meta.mappingCount).toBe(3);
-    expect(meta.universityCount).toBe(2);
-    expect(meta.nusCourseCount).toBe(2);
-    expect(meta.faculties).toEqual(['School of Computing']);
+    expect(meta.mappingCount).toBe(4);
+    expect(meta.universityCount).toBe(3);
+    expect(meta.nusCourseCount).toBe(3);
+    expect(meta.faculties).toEqual(['NUS Business School', 'School of Computing']);
   });
 });

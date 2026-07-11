@@ -14,11 +14,20 @@ async function getJson<T>(url: string): Promise<T> {
 
 export const fetchMeta = (): Promise<MetaResponse> => getJson('/api/meta');
 
-export const fetchUniversities = (): Promise<UniversitySummary[]> => getJson('/api/universities');
+export function fetchUniversities(faculty?: string): Promise<UniversitySummary[]> {
+  const params = new URLSearchParams();
+  if (faculty) params.set('faculty', faculty);
+  return getJson(`/api/universities?${params}`);
+}
 
-export function searchMappings(q: string, university?: string): Promise<SearchResponse> {
+export function searchMappings(
+  q: string,
+  university?: string,
+  faculty?: string,
+): Promise<SearchResponse> {
   const params = new URLSearchParams({ q });
   if (university) params.set('university', university);
+  if (faculty) params.set('faculty', faculty);
   return getJson(`/api/search?${params}`);
 }
 

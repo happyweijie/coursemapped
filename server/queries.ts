@@ -23,6 +23,7 @@ const BASE_SELECT = `
   JOIN pu_courses p   ON p.id = m.pu_course_id
   JOIN universities u ON u.id = p.university_id
   JOIN nus_courses n  ON n.code = m.nus_course_code
+  JOIN faculties f    ON f.id = m.faculty_id
 `;
 
 interface RawRow extends Omit<MappingRow, 'preApproved'> {
@@ -41,9 +42,10 @@ export function searchMappings(
   db: Database.Database,
   q: string,
   university?: string,
+  faculty?: string,
 ): { rows: MappingRow[]; truncated: boolean } {
   const tokens = q.trim().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0 && !university) return { rows: [], truncated: false };
+  if (tokens.length === 0 && !university && !faculty) return { rows: [], truncated: false };
 
   const conditions: string[] = [];
   const params: string[] = [];
@@ -58,6 +60,10 @@ export function searchMappings(
     conditions.push('u.name = ?');
     params.push(university);
   }
+  if (faculty) {
+    conditions.push('f.name = ?');
+    params.push(faculty);
+  }
 
   const sql = `${BASE_SELECT}
     WHERE ${conditions.join(' AND ')}
@@ -68,17 +74,19 @@ export function searchMappings(
   return { rows: raw.slice(0, SEARCH_LIMIT).map(toMappingRow), truncated };
 }
 
-export function listUniversities(db: Database.Database): UniversitySummary[] {
+export function listUniversities(db: Database.Database, faculty?: string): UniversitySummary[] {
   return db
     .prepare(
       `SELECT u.name AS name, COUNT(m.id) AS mappingCount
        FROM universities u
        JOIN pu_courses p ON p.university_id = u.id
        JOIN mappings m   ON m.pu_course_id = p.id
+       JOIN faculties f  ON f.id = m.faculty_id
+       ${faculty ? 'WHERE f.name = ?' : ''}
        GROUP BY u.id
        ORDER BY u.name`,
     )
-    .all() as UniversitySummary[];
+    .all(...(faculty ? [faculty] : [])) as UniversitySummary[];
 }
 
 /** Hydrates basket keys (university, PU code, NUS code) into full rows. */

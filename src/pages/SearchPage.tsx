@@ -13,6 +13,7 @@ export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const [university, setUniversity] = useState(searchParams.get('university') ?? '');
+  const [faculty, setFaculty] = useState(searchParams.get('faculty') ?? '');
   const [result, setResult] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +34,28 @@ export default function SearchPage() {
 
   useEffect(() => {
     fetchMeta().then(setMeta).catch(() => {});
-    fetchUniversities().then(setUniversities).catch(() => {});
   }, []);
 
+  // The university dropdown is scoped to the selected faculty.
   useEffect(() => {
-    const hasFilter = query.trim() !== '' || university !== '';
+    fetchUniversities(faculty || undefined)
+      .then((list) => {
+        setUniversities(list);
+        setUniversity((current) =>
+          current && !list.some((u) => u.name === current) ? '' : current,
+        );
+      })
+      .catch(() => {});
+  }, [faculty]);
+
+  useEffect(() => {
+    const hasFilter = query.trim() !== '' || university !== '' || faculty !== '';
     const timer = setTimeout(() => {
       // Keep the URL shareable/bookmarkable.
       const params: Record<string, string> = {};
       if (query.trim()) params.q = query;
       if (university) params.university = university;
+      if (faculty) params.faculty = faculty;
       setSearchParams(params, { replace: true });
 
       if (!hasFilter) {
@@ -51,7 +64,7 @@ export default function SearchPage() {
         return;
       }
       setLoading(true);
-      searchMappings(query, university || undefined)
+      searchMappings(query, university || undefined, faculty || undefined)
         .then((r) => {
           setResult(r);
           setError(null);
@@ -60,7 +73,7 @@ export default function SearchPage() {
         .finally(() => setLoading(false));
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [query, university, setSearchParams]);
+  }, [query, university, faculty, setSearchParams]);
 
   const groups = result ? groupByUniversity(result.rows, favouriteSet) : [];
 
@@ -95,6 +108,20 @@ export default function SearchPage() {
               <option key={u.name} value={u.name}>
                 {favouriteSet.has(u.name) ? '★ ' : ''}
                 {u.name} ({u.mappingCount})
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="uni-filter"
+            value={faculty}
+            onChange={(e) => setFaculty(e.target.value)}
+            aria-label="Filter by faculty"
+          >
+            <option value="">All faculties</option>
+            {meta?.faculties.map((name) => (
+              <option key={name} value={name}>
+                {name}
               </option>
             ))}
           </select>

@@ -20,11 +20,13 @@ app.get('/api/meta', (_req, res) => {
 app.get('/api/search', (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q : '';
   const university = typeof req.query.university === 'string' ? req.query.university : undefined;
-  res.json(searchMappings(db, q, university));
+  const faculty = typeof req.query.faculty === 'string' ? req.query.faculty : undefined;
+  res.json(searchMappings(db, q, university, faculty));
 });
 
-app.get('/api/universities', (_req, res) => {
-  res.json(listUniversities(db));
+app.get('/api/universities', (req, res) => {
+  const faculty = typeof req.query.faculty === 'string' ? req.query.faculty : undefined;
+  res.json(listUniversities(db, faculty));
 });
 
 app.post('/api/resolve', (req, res) => {
