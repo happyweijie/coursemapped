@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# SQLite database (regenerate with `npm run seed`)
+server/data/
+
 # Raw scraped portal pages (10-20 MB each; CSVs in data_scrapping/out are the source of truth)
 data_scrapping/*.mhtml
 

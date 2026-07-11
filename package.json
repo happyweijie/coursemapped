@@ -4,22 +4,33 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n api,web \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:web": "vite",
+    "dev:server": "tsx watch server/index.ts",
     "build": "tsc -b && vite build",
+    "start": "tsx server/index.ts",
     "preview": "vite preview",
+    "seed": "tsx server/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "data": "node scripts/build-data.mjs"
+    "typecheck": "tsc -b"
   },
   "dependencies": {
+    "better-sqlite3": "^12.0.0",
+    "express": "^5.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.1",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "@vitejs/plugin-react": "^4.4.0",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.0",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
     "vitest": "^3.1.4"
