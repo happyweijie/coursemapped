@@ -56,9 +56,12 @@ root checks all of them.
   so they survive database re-seeds (row ids do not). Keys are hydrated into
   full rows via `POST /api/resolve`, which also reports keys that no longer
   exist in the dataset.
-- **No accounts.** The basket lives in localStorage
-  (`src/lib/basket.ts`, module-level store + `useSyncExternalStore`, synced
-  across tabs). Sharing encodes the basket into the URL itself:
+- **No accounts.** All user state lives in localStorage via the
+  `createLocalStore` factory in `src/lib/localStore.ts` (module-level store +
+  `useSyncExternalStore`, synced across tabs): the basket
+  (`src/lib/basket.ts`) and favourited universities (`src/lib/favourites.ts`,
+  which sort first in search results and the basket via
+  `groupByUniversity`'s second argument). Sharing encodes the basket into the URL itself:
   base64url-encoded JSON grouped by university (`src/lib/share.ts`), landing on
   `/share?d=…`.
 - **Seeding is idempotent per faculty**: `server/seed.ts` deletes a faculty's
