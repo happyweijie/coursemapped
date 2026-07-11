@@ -10,12 +10,14 @@ import {
   toBasketKey,
   useBasket,
 } from '../lib/basket';
+import { useFavourites } from '../lib/favourites';
 import { groupByUniversity } from '../lib/group';
 import { shareUrl } from '../lib/share';
 import type { BasketKey, ResolveResponse } from '../lib/types';
 
 export default function BasketPage() {
   const basket = useBasket();
+  const favourites = useFavourites();
   const [resolved, setResolved] = useState<ResolveResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +68,7 @@ export default function BasketPage() {
     );
   }
 
-  const groups = groupByUniversity(resolved.found);
+  const groups = groupByUniversity(resolved.found, new Set(favourites));
 
   return (
     <div>

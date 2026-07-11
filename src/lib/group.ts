@@ -3,10 +3,18 @@ import type { MappingRow } from './types';
 export interface UniversityGroup {
   university: string;
   rows: MappingRow[];
+  favourite: boolean;
 }
 
-/** Groups mapping rows by partner university, sorted by name then NUS code. */
-export function groupByUniversity(rows: MappingRow[]): UniversityGroup[] {
+/**
+ * Groups mapping rows by partner university. Favourited universities come
+ * first; within each partition, universities sort by name and rows by NUS
+ * code then PU code.
+ */
+export function groupByUniversity(
+  rows: MappingRow[],
+  favourites?: Set<string>,
+): UniversityGroup[] {
   const byUni = new Map<string, MappingRow[]>();
   for (const row of rows) {
     const group = byUni.get(row.university);
@@ -14,11 +22,15 @@ export function groupByUniversity(rows: MappingRow[]): UniversityGroup[] {
     else byUni.set(row.university, [row]);
   }
   return [...byUni.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
     .map(([university, groupRows]) => ({
       university,
+      favourite: favourites?.has(university) ?? false,
       rows: groupRows.sort(
         (a, b) => a.nusCode.localeCompare(b.nusCode) || a.puCode.localeCompare(b.puCode),
       ),
-    }));
+    }))
+    .sort(
+      (a, b) =>
+        Number(b.favourite) - Number(a.favourite) || a.university.localeCompare(b.university),
+    );
 }

@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BasketButton from '../components/BasketButton';
 import UniversityGroup from '../components/UniversityGroup';
 import { fetchMeta, fetchUniversities, searchMappings } from '../lib/api';
+import { useFavourites } from '../lib/favourites';
 import { groupByUniversity } from '../lib/group';
 import type { MetaResponse, SearchResponse, UniversitySummary } from '../lib/types';
 
@@ -17,6 +18,18 @@ export default function SearchPage() {
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<MetaResponse | null>(null);
   const [universities, setUniversities] = useState<UniversitySummary[]>([]);
+  const favourites = useFavourites();
+  const favouriteSet = useMemo(() => new Set(favourites), [favourites]);
+  // Favourited universities float to the top of the filter dropdown too.
+  const sortedUniversities = useMemo(
+    () =>
+      [...universities].sort(
+        (a, b) =>
+          Number(favouriteSet.has(b.name)) - Number(favouriteSet.has(a.name)) ||
+          a.name.localeCompare(b.name),
+      ),
+    [universities, favouriteSet],
+  );
 
   useEffect(() => {
     fetchMeta().then(setMeta).catch(() => {});
@@ -49,7 +62,7 @@ export default function SearchPage() {
     return () => clearTimeout(timer);
   }, [query, university, setSearchParams]);
 
-  const groups = result ? groupByUniversity(result.rows) : [];
+  const groups = result ? groupByUniversity(result.rows, favouriteSet) : [];
 
   return (
     <div>
@@ -78,8 +91,9 @@ export default function SearchPage() {
             aria-label="Filter by partner university"
           >
             <option value="">All partner universities</option>
-            {universities.map((u) => (
+            {sortedUniversities.map((u) => (
               <option key={u.name} value={u.name}>
+                {favouriteSet.has(u.name) ? '★ ' : ''}
                 {u.name} ({u.mappingCount})
               </option>
             ))}
