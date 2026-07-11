@@ -1,7 +1,21 @@
+import argparse
 import email
 import csv
 import sys
 from bs4 import BeautifulSoup
+
+def main():
+    parser = argparse.ArgumentParser(description="Scrape course mappings from an MHTML file and output to CSV.")
+
+    parser.add_argument("-m", "--mhtml", required=True, type=str, help="Path to the input MHTML file.")
+    parser.add_argument("-c", "--csv", type=str, help="Path to the output CSV file.")
+
+    # 3. Parse input arguments
+    args = parser.parse_args()
+
+    mhtml_file = args.mhtml
+    csv_file = args.csv if args.csv else 'output.csv'
+    scrape_mappings(mhtml_file, csv_file)
 
 def scrape_mappings(mhtml_path, csv_path):
     print(f"Reading MHTML file from: {mhtml_path}...")
@@ -103,6 +117,4 @@ def scrape_mappings(mhtml_path, csv_path):
         sys.exit(1)
 
 if __name__ == '__main__':
-    mhtml_file = 'biz_course_mappings.mhtml'
-    csv_file = 'biz_course_mappings.csv'
-    scrape_mappings(mhtml_file, csv_file)
+    main()
