@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import CopyLinkButton from '../components/CopyLinkButton';
 import UniversityGroup from '../components/UniversityGroup';
 import { resolveKeys } from '../lib/api';
 import {
@@ -10,6 +11,7 @@ import {
   useBasket,
 } from '../lib/basket';
 import { groupByUniversity } from '../lib/group';
+import { shareUrl } from '../lib/share';
 import type { BasketKey, ResolveResponse } from '../lib/types';
 
 export default function BasketPage() {
@@ -74,6 +76,7 @@ export default function BasketPage() {
           {basket.length} {basket.length === 1 ? 'course' : 'courses'} across {groups.length}{' '}
           {groups.length === 1 ? 'university' : 'universities'}
         </p>
+        <CopyLinkButton label="Share basket" getUrl={() => shareUrl(basket)} />
       </div>
 
       {groups.map((g) => (
@@ -82,13 +85,19 @@ export default function BasketPage() {
           university={g.university}
           rows={g.rows}
           headerActions={
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={() => handleRemoveUniversity(g.university, g.rows.length)}
-            >
-              Remove university
-            </button>
+            <>
+              <CopyLinkButton
+                label="Share"
+                getUrl={() => shareUrl(g.rows.map(toBasketKey))}
+              />
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => handleRemoveUniversity(g.university, g.rows.length)}
+              >
+                Remove university
+              </button>
+            </>
           }
           renderRowAction={(row) => (
             <button

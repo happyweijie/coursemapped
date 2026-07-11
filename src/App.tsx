@@ -4,6 +4,7 @@ import { useBasket } from './lib/basket';
 import { useTheme } from './lib/theme';
 import BasketPage from './pages/BasketPage';
 import SearchPage from './pages/SearchPage';
+import SharePage from './pages/SharePage';
 
 export default function App() {
   const [theme, toggleTheme] = useTheme();
@@ -16,6 +17,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<SearchPage />} />
           <Route path="/basket" element={<BasketPage />} />
+          <Route path="/share" element={<SharePage />} />
           <Route path="*" element={<p className="notice">Page not found.</p>} />
         </Routes>
       </main>
