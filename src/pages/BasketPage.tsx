@@ -1,3 +1,4 @@
+import { Minus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CopyLinkButton from '../components/CopyLinkButton';
@@ -97,7 +98,7 @@ export default function BasketPage() {
                 className="btn btn-danger"
                 onClick={() => handleRemoveUniversity(g.university, g.rows.length)}
               >
-                Remove
+                <Trash2 size={14} /> Remove all
               </button>
             </>
           }
@@ -107,7 +108,7 @@ export default function BasketPage() {
               className="btn btn-ghost"
               onClick={() => removeFromBasket(toBasketKey(row))}
             >
-              Remove
+              <Minus size={14} /> Remove
             </button>
           )}
         />
@@ -141,7 +142,7 @@ export default function BasketPage() {
                     className="btn btn-ghost"
                     onClick={() => handleRemoveMissing(k)}
                   >
-                    Remove
+                    <Minus size={14} /> Remove
                   </button>
                 </div>
               </li>
