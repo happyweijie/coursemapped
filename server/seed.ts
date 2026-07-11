@@ -13,6 +13,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseCsv } from './csv.js';
 import { openDb } from './db.js';
+import { formatUniversityName } from '../src/lib/universityName.js';
 
 const ACAD_YEAR = '2026-2027';
 const NUSMODS_API = `https://api.nusmods.com/v2/${ACAD_YEAR}/modules`;
@@ -55,7 +56,7 @@ function loadCsv(path: string): CsvMapping[] {
   const mappings: CsvMapping[] = [];
   let dropped = 0;
   for (const row of rows) {
-    const university = row[col['Partner University']]?.trim() ?? '';
+    const university = formatUniversityName(row[col['Partner University']]?.trim() ?? '');
     const puCode = row[col['PU Course']]?.trim() ?? '';
     const nusCode = row[col['NUS Course']]?.trim() ?? '';
     if (!university || !puCode || !nusCode) {
@@ -163,6 +164,12 @@ async function main() {
 
       upsertMapping.run(facultyId, puId, m.nusCode, m.preApproved ? 1 : 0);
     }
+    // Entities that no longer back any mapping (e.g. universities left behind
+    // by a rename) would otherwise linger and skew the meta counts.
+    db.prepare('DELETE FROM pu_courses WHERE id NOT IN (SELECT pu_course_id FROM mappings)').run();
+    db.prepare(
+      'DELETE FROM universities WHERE id NOT IN (SELECT university_id FROM pu_courses)',
+    ).run();
     setMeta.run('acadYear', ACAD_YEAR);
     setMeta.run(`seededAt:${facultyName}`, new Date().toISOString());
   });

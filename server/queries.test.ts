@@ -11,6 +11,7 @@ function seedFixture(db: Database.Database) {
   insertUni.run(1, 'ETH Zurich');
   insertUni.run(2, 'Aalto University');
   insertUni.run(3, 'Copenhagen Business School');
+  insertUni.run(4, 'The University of Hong Kong');
   const insertNus = db.prepare('INSERT INTO nus_courses (code, title, units) VALUES (?, ?, ?)');
   insertNus.run('CS3244', 'Machine Learning', 4);
   insertNus.run('CS2102', 'Database Systems', 4);
@@ -22,6 +23,7 @@ function seedFixture(db: Database.Database) {
   insertPu.run(2, 1, '252-0063-00L', 'Data Modelling and Databases', 7);
   insertPu.run(3, 2, 'CS-E4820', 'Advanced Probabilistic Methods', 5);
   insertPu.run(4, 3, 'BMKT10', 'Marketing Fundamentals', 7.5);
+  insertPu.run(5, 4, 'COMP3278', 'Introduction to Database Management Systems', 6);
   const insertMapping = db.prepare(
     'INSERT INTO mappings (faculty_id, pu_course_id, nus_course_code, pre_approved) VALUES (?, ?, ?, ?)',
   );
@@ -29,6 +31,7 @@ function seedFixture(db: Database.Database) {
   insertMapping.run(1, 2, 'CS2102', 0);
   insertMapping.run(1, 3, 'CS3244', 0);
   insertMapping.run(2, 4, 'MKT1705X', 0);
+  insertMapping.run(1, 5, 'CS2102', 1);
 }
 
 describe('queries', () => {
@@ -73,7 +76,7 @@ describe('queries', () => {
 
   it('browses a whole faculty with an empty query', () => {
     const { rows } = searchMappings(db, '', undefined, 'School of Computing');
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(4);
     expect(rows.every((r) => r.nusCode.startsWith('CS'))).toBe(true);
   });
 
@@ -87,11 +90,21 @@ describe('queries', () => {
     expect(missing).toEqual([{ u: 'ETH Zurich', p: 'GONE-101', n: 'CS3244' }]);
   });
 
-  it('lists universities with mapping counts', () => {
+  it('resolves keys minted with the old "X, The" university form', () => {
+    const { found, missing } = resolveKeys(db, [
+      { u: 'University of Hong Kong, The', p: 'COMP3278', n: 'CS2102' },
+    ]);
+    expect(missing).toHaveLength(0);
+    expect(found).toHaveLength(1);
+    expect(found[0].university).toBe('The University of Hong Kong');
+  });
+
+  it('lists universities with mapping counts, sorting past a leading "The"', () => {
     expect(listUniversities(db)).toEqual([
       { name: 'Aalto University', mappingCount: 1 },
       { name: 'Copenhagen Business School', mappingCount: 1 },
       { name: 'ETH Zurich', mappingCount: 2 },
+      { name: 'The University of Hong Kong', mappingCount: 1 },
     ]);
   });
 
@@ -102,13 +115,14 @@ describe('queries', () => {
     expect(listUniversities(db, 'School of Computing').map((u) => u.name)).toEqual([
       'Aalto University',
       'ETH Zurich',
+      'The University of Hong Kong',
     ]);
   });
 
   it('reports meta counts', () => {
     const meta = getMeta(db);
-    expect(meta.mappingCount).toBe(4);
-    expect(meta.universityCount).toBe(3);
+    expect(meta.mappingCount).toBe(5);
+    expect(meta.universityCount).toBe(4);
     expect(meta.nusCourseCount).toBe(3);
     expect(meta.faculties).toEqual(['NUS Business School', 'School of Computing']);
   });

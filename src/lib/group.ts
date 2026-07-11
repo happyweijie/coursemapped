@@ -1,4 +1,5 @@
 import type { MappingRow } from './types';
+import { universitySortKey } from './universityName';
 
 export interface UniversityGroup {
   university: string;
@@ -8,8 +9,8 @@ export interface UniversityGroup {
 
 /**
  * Groups mapping rows by partner university. Favourited universities come
- * first; within each partition, universities sort by name and rows by NUS
- * code then PU code.
+ * first; within each partition, universities sort by name (ignoring a leading
+ * "The") and rows by NUS code then PU code.
  */
 export function groupByUniversity(
   rows: MappingRow[],
@@ -31,6 +32,7 @@ export function groupByUniversity(
     }))
     .sort(
       (a, b) =>
-        Number(b.favourite) - Number(a.favourite) || a.university.localeCompare(b.university),
+        Number(b.favourite) - Number(a.favourite) ||
+        universitySortKey(a.university).localeCompare(universitySortKey(b.university)),
     );
 }

@@ -51,6 +51,19 @@ describe('groupByUniversity', () => {
     expect(groups.every((g) => !g.favourite)).toBe(true);
   });
 
+  it('sorts a leading "The" by the rest of the name', () => {
+    const groups = groupByUniversity([
+      ...rows,
+      row('The Australian National University', 'COMP2100', 'CS2103T'),
+    ]);
+    expect(groups.map((g) => g.university)).toEqual([
+      'Aalto University',
+      'The Australian National University',
+      'ETH Zurich',
+      'Lund University',
+    ]);
+  });
+
   it('sorts rows within a group by NUS code then PU code', () => {
     const groups = groupByUniversity(rows);
     expect(groups[0].rows.map((r) => `${r.nusCode}/${r.puCode}`)).toEqual([

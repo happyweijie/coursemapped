@@ -6,6 +6,7 @@ import type {
   ResolveResponse,
   UniversitySummary,
 } from '../src/lib/types.js';
+import { formatUniversityName, universitySortKey } from '../src/lib/universityName.js';
 
 /** Server-side cap on search results, so one query can't ship the whole table. */
 export const SEARCH_LIMIT = 1000;
@@ -75,7 +76,7 @@ export function searchMappings(
 }
 
 export function listUniversities(db: Database.Database, faculty?: string): UniversitySummary[] {
-  return db
+  const rows = db
     .prepare(
       `SELECT u.name AS name, COUNT(m.id) AS mappingCount
        FROM universities u
@@ -83,10 +84,11 @@ export function listUniversities(db: Database.Database, faculty?: string): Unive
        JOIN mappings m   ON m.pu_course_id = p.id
        JOIN faculties f  ON f.id = m.faculty_id
        ${faculty ? 'WHERE f.name = ?' : ''}
-       GROUP BY u.id
-       ORDER BY u.name`,
+       GROUP BY u.id`,
     )
     .all(...(faculty ? [faculty] : [])) as UniversitySummary[];
+  // Sorted in JS rather than SQL so the leading "The" is ignored.
+  return rows.sort((a, b) => universitySortKey(a.name).localeCompare(universitySortKey(b.name)));
 }
 
 /** Hydrates basket keys (university, PU code, NUS code) into full rows. */
@@ -95,7 +97,9 @@ export function resolveKeys(db: Database.Database, keys: BasketKey[]): ResolveRe
   const found: MappingRow[] = [];
   const missing: BasketKey[] = [];
   for (const key of keys) {
-    const row = stmt.get(key.u, key.p, key.n) as RawRow | undefined;
+    // Keys minted before university names were normalised may still use the
+    // scraped "X, The" form.
+    const row = stmt.get(formatUniversityName(key.u), key.p, key.n) as RawRow | undefined;
     if (row) found.push(toMappingRow(row));
     else missing.push(key);
   }
