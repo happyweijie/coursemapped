@@ -389,6 +389,11 @@ a {
   background: var(--success-soft);
 }
 
+/* Keeps the badge's space in the row so meta columns align across groups. */
+.badge-hidden {
+  visibility: hidden;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

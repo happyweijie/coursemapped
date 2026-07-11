@@ -66,7 +66,15 @@ export default function UniversityGroup({
                 <span className="course-units">{formatUnits(row.puUnits)}</span>
               </div>
               <div className="mapping-meta">
-                {row.preApproved && <span className="badge badge-approved">Pre-approved</span>}
+                {/* Always rendered so the meta column is the same width in
+                    every group; hidden rather than omitted when not approved. */}
+                <span
+                  className={
+                    row.preApproved ? 'badge badge-approved' : 'badge badge-approved badge-hidden'
+                  }
+                >
+                  Pre-approved
+                </span>
                 {renderRowAction?.(row)}
               </div>
             </li>
