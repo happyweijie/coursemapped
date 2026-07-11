@@ -35,6 +35,17 @@ interface CsvMapping {
   preApproved: boolean;
 }
 
+/**
+ * The portal export leaves stray quotes around some course titles
+ * ('"Java Programming', '" Information Security Management"'); strip any
+ * leading/trailing quotes, apostrophes, and whitespace. Capitalise
+ * first letter of the string, but leave the rest as-is.
+ */
+function cleanTitle(raw: string): string {
+  const stripped = raw.replace(/^['"\s]+|['"\s]+$/g, '');
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+}
+
 function loadCsv(path: string): CsvMapping[] {
   const text = readFileSync(path, 'utf-8').replace(/^﻿/, '');
   const [header, ...rows] = parseCsv(text);
@@ -67,10 +78,10 @@ function loadCsv(path: string): CsvMapping[] {
       faculty: row[col['Faculty']].trim(),
       university,
       puCode,
-      puTitle: row[col['PU Course Title']].trim(),
+      puTitle: cleanTitle(row[col['PU Course Title']]),
       puUnits: parseFloat(row[col['PU Course Units']]) || null,
       nusCode,
-      nusTitle: row[col['NUS Course Title']].trim(),
+      nusTitle: cleanTitle(row[col['NUS Course Title']]),
       nusUnits: parseFloat(row[col['NUS Course Units']]) || null,
       preApproved: row[col['Pre Approved']].trim() === 'True',
     });
@@ -130,8 +141,9 @@ async function main() {
     INSERT INTO nus_courses (code, title, units) VALUES (?, ?, ?)
     ON CONFLICT (code) DO UPDATE SET title = excluded.title, units = excluded.units
   `);
-  const insertPuCourse = db.prepare(`
-    INSERT OR IGNORE INTO pu_courses (university_id, code, title, units) VALUES (?, ?, ?, ?)
+  const upsertPuCourse = db.prepare(`
+    INSERT INTO pu_courses (university_id, code, title, units) VALUES (?, ?, ?, ?)
+    ON CONFLICT (university_id, code) DO UPDATE SET title = excluded.title, units = excluded.units
   `);
   const getPuCourse = db.prepare('SELECT id FROM pu_courses WHERE university_id = ? AND code = ?');
   const upsertMapping = db.prepare(`
@@ -159,7 +171,7 @@ async function main() {
       const fresh = enriched.get(m.nusCode);
       upsertNusCourse.run(m.nusCode, fresh?.title ?? m.nusTitle, fresh?.units ?? m.nusUnits);
 
-      insertPuCourse.run(uniId, m.puCode, m.puTitle, m.puUnits);
+      upsertPuCourse.run(uniId, m.puCode, m.puTitle, m.puUnits);
       const puId = (getPuCourse.get(uniId, m.puCode) as { id: number }).id;
 
       upsertMapping.run(facultyId, puId, m.nusCode, m.preApproved ? 1 : 0);
