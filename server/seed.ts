@@ -1,7 +1,7 @@
 /**
  * Seeds the SQLite database from a scraped course-mappings CSV.
  *
- * - Parses data_scrapping/out/<key>_course_mappings.csv
+ * - Parses data_scraping/out/<key>_course_mappings.csv
  * - Replaces truncated/outdated NUS course titles with fresh ones from the
  *   NUSMods API (falls back to the scraped title when a module is not found)
  * - Inserts into the normalised schema (see db.ts)
@@ -21,7 +21,7 @@ const CONCURRENCY = 8;
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const key = process.argv[2] ?? 'soc';
-const csvPath = join(root, 'data_scrapping', 'out', `${key}_course_mappings.csv`);
+const csvPath = join(root, 'data_scraping', 'out', `${key}_course_mappings.csv`);
 
 interface CsvMapping {
   faculty: string;
