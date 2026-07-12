@@ -4,6 +4,9 @@ import { ChevronDown } from 'lucide-react';
 import type { MappingRow } from '../lib/types';
 import FavouriteButton from './FavouriteButton';
 
+/** Rows shown per group before the user opts into the full list. */
+const ROW_PREVIEW = 5;
+
 interface Props {
   university: string;
   rows: MappingRow[];
@@ -24,6 +27,9 @@ export default function UniversityGroup({
   renderRowAction,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const hiddenCount = rows.length - ROW_PREVIEW;
+  const visibleRows = showAll || hiddenCount <= 0 ? rows : rows.slice(0, ROW_PREVIEW);
   return (
     <section className={collapsed ? 'uni-group uni-group-collapsed' : 'uni-group'}>
       <header className="uni-group-header">
@@ -45,8 +51,9 @@ export default function UniversityGroup({
         {headerActions && <div className="uni-group-actions">{headerActions}</div>}
       </header>
       {!collapsed && (
+        <>
         <ul className="mapping-list">
-          {rows.map((row) => (
+          {visibleRows.map((row) => (
             <li key={`${row.puCode} ${row.nusCode}`} className="mapping-row">
               <div className="mapping-course">
                 <span className="course-code course-code-nus">
@@ -80,6 +87,13 @@ export default function UniversityGroup({
             </li>
           ))}
         </ul>
+        {!showAll && hiddenCount > 0 && (
+          <button type="button" className="show-more" onClick={() => setShowAll(true)}>
+            <ChevronDown size={14} aria-hidden />
+            Show all {rows.length} courses
+          </button>
+        )}
+        </>
       )}
     </section>
   );

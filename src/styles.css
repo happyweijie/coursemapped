@@ -467,6 +467,28 @@ a {
   color: var(--muted);
 }
 
+/* Group footer action revealing the rows past the preview cut. */
+.show-more {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--border);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.show-more:hover {
+  background: var(--accent-soft);
+}
+
 .btn-danger {
   color: var(--danger);
 }
