@@ -58,16 +58,26 @@ a {
 
 /* ---------- Layout ---------- */
 
+/* Flex column pinning the footer to the viewport bottom on short pages. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 .container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
+  flex: 1;
+  width: 100%; /* auto cross-axis margins disable flex stretch, so span explicitly */
 }
 
 .site-footer {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 1rem;
+  width: 100%;
+  padding: 1rem 1rem 1.75rem;
   color: var(--muted);
   font-size: 0.8rem;
   border-top: 1px solid var(--border);
