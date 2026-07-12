@@ -38,15 +38,22 @@ function toMappingRow(row: RawRow): MappingRow {
 /**
  * Tokenised substring search: every whitespace-separated token in `q` must
  * match at least one of NUS code/title, PU code/title, or university name.
+ *
+ * `favourites` (university names) sort first so their rows survive the
+ * SEARCH_LIMIT cut; with no query and no filters they become the filter
+ * itself, powering the favourites browse view on the empty search page.
  */
 export function searchMappings(
   db: Database.Database,
   q: string,
   university?: string,
   faculty?: string,
+  favourites: string[] = [],
 ): { rows: MappingRow[]; truncated: boolean } {
   const tokens = q.trim().split(/\s+/).filter(Boolean);
-  if (tokens.length === 0 && !university && !faculty) return { rows: [], truncated: false };
+  if (tokens.length === 0 && !university && !faculty && favourites.length === 0) {
+    return { rows: [], truncated: false };
+  }
 
   const conditions: string[] = [];
   const params: string[] = [];
@@ -66,9 +73,21 @@ export function searchMappings(
     params.push(faculty);
   }
 
+  const favouritePlaceholders = favourites.map(() => '?').join(', ');
+  if (conditions.length === 0) {
+    conditions.push(`u.name IN (${favouritePlaceholders})`);
+    params.push(...favourites);
+  }
+
+  let orderBy = 'u.name, n.code, p.code';
+  if (favourites.length > 0) {
+    orderBy = `CASE WHEN u.name IN (${favouritePlaceholders}) THEN 0 ELSE 1 END, ${orderBy}`;
+    params.push(...favourites);
+  }
+
   const sql = `${BASE_SELECT}
     WHERE ${conditions.join(' AND ')}
-    ORDER BY u.name, n.code, p.code
+    ORDER BY ${orderBy}
     LIMIT ${SEARCH_LIMIT + 1}`;
   const raw = db.prepare(sql).all(...params) as RawRow[];
   const truncated = raw.length > SEARCH_LIMIT;

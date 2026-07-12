@@ -24,10 +24,13 @@ export function searchMappings(
   q: string,
   university?: string,
   faculty?: string,
+  favourites?: string[],
 ): Promise<SearchResponse> {
   const params = new URLSearchParams({ q });
   if (university) params.set('university', university);
   if (faculty) params.set('faculty', faculty);
+  // Repeated params rather than comma-joined, since names may contain commas.
+  favourites?.forEach((name) => params.append('favourites', name));
   return getJson(`/api/search?${params}`);
 }
 

@@ -49,23 +49,27 @@ export default function SearchPage() {
       .catch(() => {});
   }, [faculty]);
 
+  const hasQueryOrFilter = query.trim() !== '' || university !== '' || faculty !== '';
+  // With nothing typed or selected, the page falls back to browsing favourites.
+  const browsingFavourites = !hasQueryOrFilter && favourites.length > 0;
+
   useEffect(() => {
-    const hasFilter = query.trim() !== '' || university !== '' || faculty !== '';
     const timer = setTimeout(() => {
-      // Keep the URL shareable/bookmarkable.
+      // Keep the URL shareable/bookmarkable (favourites are device state, not URL state).
       const params: Record<string, string> = {};
       if (query.trim()) params.q = query;
       if (university) params.university = university;
       if (faculty) params.faculty = faculty;
       setSearchParams(params, { replace: true });
 
-      if (!hasFilter) {
+      if (!hasQueryOrFilter && favourites.length === 0) {
         setResult(null);
         setError(null);
         return;
       }
       setLoading(true);
-      searchMappings(query, university || undefined, faculty || undefined)
+      // Favourites are sent so the server keeps their rows when truncating.
+      searchMappings(query, university || undefined, faculty || undefined, favourites)
         .then((r) => {
           setResult(r);
           setError(null);
@@ -74,7 +78,7 @@ export default function SearchPage() {
         .finally(() => setLoading(false));
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [query, university, faculty, setSearchParams]);
+  }, [query, university, faculty, favourites, hasQueryOrFilter, setSearchParams]);
 
   const groups = result ? groupByUniversity(result.rows, favouriteSet) : [];
 
@@ -144,7 +148,13 @@ export default function SearchPage() {
             </p>
           )}
           {groups.length === 0 ? (
-            <p className="notice">No mappings found. Try a broader search term.</p>
+            <p className="notice">
+              {browsingFavourites
+                ? 'No mappings found for your favourite universities.'
+                : 'No mappings found. Try a broader search term.'}
+            </p>
+          ) : browsingFavourites ? (
+            <p className="result-summary">Your favourite universities</p>
           ) : (
             <p className="result-summary">
               {result.rows.length.toLocaleString()} {result.rows.length === 1 ? 'mapping' : 'mappings'}

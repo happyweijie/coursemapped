@@ -8,6 +8,7 @@ import type { BasketKey } from '../src/lib/types.js';
 
 const PORT = Number(process.env.PORT) || 3001;
 const MAX_RESOLVE_KEYS = 500;
+const MAX_FAVOURITES = 100;
 
 const db = openDb();
 const app = express();
@@ -21,7 +22,11 @@ app.get('/api/search', (req, res) => {
   const q = typeof req.query.q === 'string' ? req.query.q : '';
   const university = typeof req.query.university === 'string' ? req.query.university : undefined;
   const faculty = typeof req.query.faculty === 'string' ? req.query.faculty : undefined;
-  res.json(searchMappings(db, q, university, faculty));
+  const rawFavourites = req.query.favourites;
+  const favourites = (Array.isArray(rawFavourites) ? rawFavourites : [rawFavourites])
+    .filter((f): f is string => typeof f === 'string')
+    .slice(0, MAX_FAVOURITES);
+  res.json(searchMappings(db, q, university, faculty, favourites));
 });
 
 app.get('/api/universities', (req, res) => {
