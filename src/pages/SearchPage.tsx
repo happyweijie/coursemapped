@@ -91,7 +91,7 @@ export default function SearchPage() {
           <input
             type="search"
             className="search-input"
-            placeholder="Search by course code or title, e.g. CS3244 or Machine Learning"
+            placeholder="Search by course code or title"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
