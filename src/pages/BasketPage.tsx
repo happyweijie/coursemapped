@@ -1,4 +1,4 @@
-import { Minus, ShoppingBasket, Trash2 } from 'lucide-react';
+import { ArrowLeftRight, Minus, ShoppingBasket, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CopyLinkButton from '../components/CopyLinkButton';
@@ -133,7 +133,8 @@ export default function BasketPage() {
                   <span className="course-title">{k.u}</span>
                 </div>
                 <div className="mapping-arrow" aria-hidden>
-                  ⇄
+                  <ArrowLeftRight size={16} className="mapping-arrow-icon" />
+                  <span className="mapping-arrow-label">maps to</span>
                 </div>
                 <div className="mapping-course">
                   <span className="course-code course-code-nus">{k.n}</span>

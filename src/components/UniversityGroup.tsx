@@ -45,7 +45,7 @@ export default function UniversityGroup({
             onClick={() => setCollapsed((c) => !c)}
           >
             <ChevronDown size={18} className="uni-group-chevron" aria-hidden />
-            {university}
+            <span className="uni-group-name">{university}</span>
           </button>
         </h2>
         <span className="uni-group-count">
@@ -68,7 +68,8 @@ export default function UniversityGroup({
                 <span className="course-units">{formatUnits(row.nusUnits)}</span>
               </div>
               <div className="mapping-arrow" aria-hidden>
-                <ArrowLeftRight size={16} />
+                <ArrowLeftRight size={16} className="mapping-arrow-icon" />
+                <span className="mapping-arrow-label">maps to</span>
               </div>
               <div className="mapping-course">
                 <span className="course-code">{row.puCode}</span>
