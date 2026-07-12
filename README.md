@@ -1,19 +1,15 @@
 # coursemapped
 
-Search NUS exchange course mappings by course — instead of scrolling through the
-EduRec table — then collect the ones you like into a basket grouped by partner
-university and share it with friends via a link. No login needed.
+![search](images/search.png)
 
-**MVP scope:** School of Computing mappings, AY2026/27.
+Search NUS SEP course mappings by course then collect the ones you like grouped by partner university and share it with friends via a link. No login needed.
 
 ## Features
 
-- **Search by course**: type an NUS course code (`CS2102`), a title
+- **Search by course**: type an NUS course code (`CS3244`), a title
   (`machine learning`), a partner university course code/title, or a university
   name. Results are grouped by partner university, with an optional
-  university filter. NUS course titles are refreshed from the
-  [NUSMods API](https://api.nusmods.com/) (the scraped portal titles are
-  truncated at 30 characters).
+  university filter.
 - **Basket**: add mappings to a basket stored in your browser
   (localStorage). View it grouped by partner university; remove single courses
   or a university with all its courses at once.
@@ -53,10 +49,11 @@ npm start        # Express serves the API and dist/ on :3001
 
 ## Data
 
-`data_scrapping/` holds the scraper (`scrap_course_mappings.py`) that converts
-saved EduRec MHTML pages into the CSVs in `data_scrapping/out/`. The seed
+`data_scraping/` holds the scraper (`scrape_course_mappings.py`) that converts
+saved EduRec MHTML pages into the CSVs in `data_scraping/out/`. The seed
 script normalises those rows into SQLite and replaces stale NUS course titles
 with fresh ones from NUSMods.
 
-Mapping data is scraped from NUS EduRec and may be outdated — always confirm
-mappings with your faculty. Not affiliated with NUS or NUSMods.
+## Known Issues
+- Mapping data is scraped from EduRec, where mapping data is updated infrequently  and likely to be outdated.
+
