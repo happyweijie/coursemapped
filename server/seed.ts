@@ -6,11 +6,12 @@
  *   NUSMods API (falls back to the scraped title when a module is not found)
  * - Inserts into the normalised schema (see db.ts)
  *
- * Usage: npm run seed [-- <key>]   (default key: soc)
+ * Usage: npm run seed [-- <key>]   (default: every CSV in data_scraping/out)
  */
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type Database from 'better-sqlite3';
 import { parseCsv } from './csv.js';
 import { openDb } from './db.js';
 import { formatUniversityName } from '../src/lib/universityName.js';
@@ -20,8 +21,15 @@ const NUSMODS_API = `https://api.nusmods.com/v2/${ACAD_YEAR}/modules`;
 const CONCURRENCY = 8;
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const key = process.argv[2] ?? 'soc';
-const csvPath = join(root, 'data_scraping', 'out', `${key}_course_mappings.csv`);
+const outDir = join(root, 'data_scraping', 'out');
+const CSV_SUFFIX = '_course_mappings.csv';
+
+const keys = process.argv[2]
+  ? [process.argv[2]]
+  : readdirSync(outDir)
+      .filter((f) => f.endsWith(CSV_SUFFIX))
+      .map((f) => f.slice(0, -CSV_SUFFIX.length))
+      .sort();
 
 interface CsvMapping {
   faculty: string;
@@ -125,14 +133,13 @@ async function fetchNusModsTitles(
   return result;
 }
 
-async function main() {
+async function seedFaculty(db: Database.Database, csvPath: string) {
   const mappings = loadCsv(csvPath);
   console.log(`Parsed ${mappings.length} mapping rows from ${csvPath}`);
 
   const nusCodes = [...new Set(mappings.map((m) => m.nusCode))];
   const enriched = await fetchNusModsTitles(nusCodes);
 
-  const db = openDb();
   const insertFaculty = db.prepare('INSERT OR IGNORE INTO faculties (name) VALUES (?)');
   const getFaculty = db.prepare('SELECT id FROM faculties WHERE name = ?');
   const insertUni = db.prepare('INSERT OR IGNORE INTO universities (name) VALUES (?)');
@@ -186,6 +193,14 @@ async function main() {
     setMeta.run(`seededAt:${facultyName}`, new Date().toISOString());
   });
   seed();
+}
+
+async function main() {
+  if (keys.length === 0) throw new Error(`No ${CSV_SUFFIX} files found in ${outDir}`);
+  const db = openDb();
+  for (const key of keys) {
+    await seedFaculty(db, join(outDir, `${key}${CSV_SUFFIX}`));
+  }
 
   const count = (db.prepare('SELECT COUNT(*) AS c FROM mappings').get() as { c: number }).c;
   console.log(`Done. Database now holds ${count} mappings.`);

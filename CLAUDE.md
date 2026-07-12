@@ -13,8 +13,8 @@ via URL. MVP covers School of Computing mappings for AY2026/27.
 
 ```bash
 npm run seed          # REQUIRED before first run: builds server/data/coursemapped.db
-                      # from data_scrapping/out/soc_course_mappings.csv + NUSMods API
-                      # (needs network; pass another faculty: npm run seed -- fos)
+                      # from every data_scraping/out/*_course_mappings.csv + NUSMods API
+                      # (needs network; seed one faculty only: npm run seed -- fos)
 npm run dev           # API (tsx watch, :3001) + Vite dev server (:5173) together
 npm run build         # tsc -b (all three tsconfigs) + vite build
 npm start             # Express serves API + built dist/ on :3001
