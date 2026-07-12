@@ -40,6 +40,14 @@ export default function SearchPage() {
     fetchMeta().then(setMeta).catch(() => {});
   }, []);
 
+  // The URL is authoritative: adopt it on in-page navigation (logo click,
+  // back/forward). After our own debounced writes the values already match.
+  useEffect(() => {
+    setQuery(searchParams.get('q') ?? '');
+    setUniversity(searchParams.get('university') ?? '');
+    setFaculty(searchParams.get('faculty') ?? '');
+  }, [searchParams]);
+
   // The university dropdown is scoped to the selected faculty.
   useEffect(() => {
     fetchUniversities(faculty || undefined)
