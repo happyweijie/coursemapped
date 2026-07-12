@@ -1,3 +1,4 @@
+import { LoaderCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BasketButton from '../components/BasketButton';
@@ -128,13 +129,18 @@ export default function SearchPage() {
       </div>
 
       {error && <p className="notice notice-error">{error}</p>}
-      {loading && <p className="notice">Searching…</p>}
+      {loading && (
+        <p className="notice notice-loading">
+          <LoaderCircle size={16} className="spin" aria-hidden="true" />
+          Searching…
+        </p>
+      )}
       {result && !loading && (
         <>
           {result.truncated && (
-            <p className="notice">
-              Showing the first {result.rows.length.toLocaleString()} results — refine your search
-              to see everything.
+            <p className="notice notice-warning">
+              Showing only the <strong>first {result.rows.length.toLocaleString()} results</strong>{' '}
+              — refine your search to see everything.
             </p>
           )}
           {groups.length === 0 ? (
@@ -158,8 +164,7 @@ export default function SearchPage() {
       )}
       {!result && !loading && !error && (
         <p className="notice notice-hint">
-          Start typing an NUS course code (e.g. <strong>CS3244</strong>), a course title, or a
-          partner university name to see every mapping at once.
+          Start typing an <strong>NUS course code</strong>, <strong>course title</strong>, or <strong>partner university name</strong> to see mappings.
         </p>
       )}
     </div>

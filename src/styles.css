@@ -11,6 +11,12 @@
   --success: #1a7f37;
   --success-soft: rgba(26, 127, 55, 0.12);
   --danger: #c62828;
+  --info: #1e3a8a;
+  --info-soft: rgba(30, 64, 175, 0.06);
+  --info-border: rgba(30, 64, 175, 0.25);
+  --warning: #9a6700;
+  --warning-soft: rgba(212, 167, 44, 0.15);
+  --warning-border: rgba(154, 103, 0, 0.3);
   color-scheme: light;
 }
 
@@ -24,6 +30,12 @@
   --success: #4caf78;
   --success-soft: rgba(76, 175, 120, 0.16);
   --danger: #ef5350;
+  --info: #93c5fd;
+  --info-soft: rgba(23, 37, 84, 0.3);
+  --info-border: rgba(30, 64, 175, 0.4);
+  --warning: #e3b341;
+  --warning-soft: rgba(227, 179, 65, 0.14);
+  --warning-border: rgba(227, 179, 65, 0.35);
   color-scheme: dark;
 }
 
@@ -209,9 +221,31 @@ a {
 }
 
 .notice-hint {
-  background: var(--accent-soft);
-  border-color: transparent;
-  color: var(--text);
+  background: var(--info-soft);
+  border-color: var(--info-border);
+  color: var(--info);
+}
+
+.notice-warning {
+  background: var(--warning-soft);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.notice-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .notice-error {
