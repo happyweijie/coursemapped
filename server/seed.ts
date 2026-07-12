@@ -189,6 +189,9 @@ async function seedFaculty(db: Database.Database, csvPath: string) {
     db.prepare(
       'DELETE FROM universities WHERE id NOT IN (SELECT university_id FROM pu_courses)',
     ).run();
+    db.prepare(
+      'DELETE FROM nus_courses WHERE code NOT IN (SELECT nus_course_code FROM mappings)',
+    ).run();
     setMeta.run('acadYear', ACAD_YEAR);
     setMeta.run(`seededAt:${facultyName}`, new Date().toISOString());
   });
