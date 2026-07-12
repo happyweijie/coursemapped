@@ -64,7 +64,7 @@ export default function BasketPage() {
         <h1>Your basket is empty</h1>
         <p>
           <Link to="/">Search for a course</Link> and add mappings you are interested in. Your
-          basket is saved in this browser — no login needed.
+          basket is saved in this browser.
         </p>
       </div>
     );
