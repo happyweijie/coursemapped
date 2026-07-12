@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown } from 'lucide-react';
 import type { MappingRow } from '../lib/types';
 import FavouriteButton from './FavouriteButton';
 
@@ -68,7 +68,7 @@ export default function UniversityGroup({
                 <span className="course-units">{formatUnits(row.nusUnits)}</span>
               </div>
               <div className="mapping-arrow" aria-hidden>
-                ⇄
+                <ArrowLeftRight size={16} />
               </div>
               <div className="mapping-course">
                 <span className="course-code">{row.puCode}</span>

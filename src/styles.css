@@ -417,6 +417,8 @@ a {
 
 .mapping-arrow {
   color: var(--muted);
+  display: flex;
+  align-items: center;
 }
 
 .mapping-meta {
