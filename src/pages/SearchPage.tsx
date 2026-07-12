@@ -85,7 +85,10 @@ export default function SearchPage() {
   }, [query, university, faculty, favourites, hasQueryOrFilter, setSearchParams]);
 
   const groups = result ? groupByUniversity(result.rows, favouriteSet) : [];
-  const visibleGroups = groups.slice(0, batchEndIndex(groups, batches, BATCH_SIZE));
+  // The favourites view is the user's own curated set — show it whole.
+  const visibleGroups = browsingFavourites
+    ? groups
+    : groups.slice(0, batchEndIndex(groups, batches, BATCH_SIZE));
   const hiddenGroups = groups.length - visibleGroups.length;
   const hiddenRows = groups.slice(visibleGroups.length).reduce((n, g) => n + g.rows.length, 0);
 
