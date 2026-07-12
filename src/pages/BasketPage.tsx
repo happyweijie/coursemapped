@@ -88,6 +88,7 @@ export default function BasketPage() {
           key={g.university}
           university={g.university}
           rows={g.rows}
+          previewRows={20}
           headerActions={
             <>
               <CopyLinkButton

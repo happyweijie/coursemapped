@@ -14,6 +14,8 @@ interface Props {
   headerActions?: ReactNode;
   /** Rendered at the end of each mapping row (add/remove buttons). */
   renderRowAction?: (row: MappingRow) => ReactNode;
+  /** Rows shown before the "Show all" footer; the group's preview size. */
+  previewRows?: number;
 }
 
 function formatUnits(units: number | null): string {
@@ -25,11 +27,12 @@ export default function UniversityGroup({
   rows,
   headerActions,
   renderRowAction,
+  previewRows = ROW_PREVIEW,
 }: Props) {
   const [collapsed, setCollapsed] = useState(false);
   const [showAll, setShowAll] = useState(false);
-  const hiddenCount = rows.length - ROW_PREVIEW;
-  const visibleRows = showAll || hiddenCount <= 0 ? rows : rows.slice(0, ROW_PREVIEW);
+  const hiddenCount = rows.length - previewRows;
+  const visibleRows = showAll || hiddenCount <= 0 ? rows : rows.slice(0, previewRows);
   return (
     <section className={collapsed ? 'uni-group uni-group-collapsed' : 'uni-group'}>
       <header className="uni-group-header">
