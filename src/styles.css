@@ -329,6 +329,30 @@ a {
   gap: 0.5rem;
 }
 
+/* Card-shaped button continuing the group list with the next result batch. */
+.load-more {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  padding: 0.7rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.load-more:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
 .mapping-list {
   list-style: none;
   margin: 0;

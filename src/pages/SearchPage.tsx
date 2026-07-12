@@ -1,14 +1,16 @@
-import { LoaderCircle } from 'lucide-react';
+import { ChevronDown, LoaderCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import BasketButton from '../components/BasketButton';
 import UniversityGroup from '../components/UniversityGroup';
 import { fetchMeta, fetchUniversities, searchMappings } from '../lib/api';
 import { useFavourites } from '../lib/favourites';
-import { groupByUniversity } from '../lib/group';
+import { batchEndIndex, groupByUniversity } from '../lib/group';
 import type { MetaResponse, SearchResponse, UniversitySummary } from '../lib/types';
 
 const DEBOUNCE_MS = 250;
+/** Results render in batches of roughly this many mappings, on group boundaries. */
+const BATCH_SIZE = 100;
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -16,6 +18,7 @@ export default function SearchPage() {
   const [university, setUniversity] = useState(searchParams.get('university') ?? '');
   const [faculty, setFaculty] = useState(searchParams.get('faculty') ?? '');
   const [result, setResult] = useState<SearchResponse | null>(null);
+  const [batches, setBatches] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [meta, setMeta] = useState<MetaResponse | null>(null);
@@ -72,6 +75,7 @@ export default function SearchPage() {
       searchMappings(query, university || undefined, faculty || undefined, favourites)
         .then((r) => {
           setResult(r);
+          setBatches(1);
           setError(null);
         })
         .catch(() => setError('Search failed — is the API server running?'))
@@ -81,6 +85,9 @@ export default function SearchPage() {
   }, [query, university, faculty, favourites, hasQueryOrFilter, setSearchParams]);
 
   const groups = result ? groupByUniversity(result.rows, favouriteSet) : [];
+  const visibleGroups = groups.slice(0, batchEndIndex(groups, batches, BATCH_SIZE));
+  const hiddenGroups = groups.length - visibleGroups.length;
+  const hiddenRows = groups.slice(visibleGroups.length).reduce((n, g) => n + g.rows.length, 0);
 
   return (
     <div>
@@ -141,12 +148,6 @@ export default function SearchPage() {
       )}
       {result && !loading && (
         <>
-          {result.truncated && (
-            <p className="notice notice-warning">
-              Showing only the <strong>first {result.rows.length.toLocaleString()} results</strong>{' '}
-              — refine your search to see everything.
-            </p>
-          )}
           {groups.length === 0 ? (
             <p className="notice">
               {browsingFavourites
@@ -162,7 +163,7 @@ export default function SearchPage() {
               {groups.length} {groups.length === 1 ? 'university' : 'universities'}
             </p>
           )}
-          {groups.map((g) => (
+          {visibleGroups.map((g) => (
             <UniversityGroup
               key={g.university}
               university={g.university}
@@ -170,6 +171,14 @@ export default function SearchPage() {
               renderRowAction={(row) => <BasketButton row={row} />}
             />
           ))}
+          {hiddenGroups > 0 && (
+            <button type="button" className="load-more" onClick={() => setBatches((b) => b + 1)}>
+              <ChevronDown size={16} aria-hidden />
+              Show more — {hiddenRows.toLocaleString()} more{' '}
+              {hiddenRows === 1 ? 'mapping' : 'mappings'} across {hiddenGroups}{' '}
+              {hiddenGroups === 1 ? 'university' : 'universities'}
+            </button>
+          )}
         </>
       )}
       {!result && !loading && !error && (

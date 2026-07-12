@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type Database from 'better-sqlite3';
 import { openDb } from './db';
-import { getMeta, listUniversities, resolveKeys, searchMappings, SEARCH_LIMIT } from './queries';
+import { getMeta, listUniversities, resolveKeys, searchMappings } from './queries';
 
 function seedFixture(db: Database.Database) {
   const insertFaculty = db.prepare('INSERT INTO faculties (id, name) VALUES (?, ?)');
@@ -43,8 +43,7 @@ describe('queries', () => {
   });
 
   it('searches by NUS course code', () => {
-    const { rows, truncated } = searchMappings(db, 'CS3244');
-    expect(truncated).toBe(false);
+    const { rows } = searchMappings(db, 'CS3244');
     expect(rows.map((r) => r.puCode).sort()).toEqual(['227-0105-00L', 'CS-E4820']);
     expect(rows.every((r) => r.nusTitle === 'Machine Learning')).toBe(true);
   });
@@ -75,40 +74,16 @@ describe('queries', () => {
   });
 
   it('browses favourite universities with an empty query and no filters', () => {
-    const { rows, truncated } = searchMappings(db, '', undefined, undefined, ['ETH Zurich']);
-    expect(truncated).toBe(false);
+    const { rows } = searchMappings(db, '', undefined, undefined, ['ETH Zurich']);
     expect(rows).toHaveLength(2);
     expect(rows.every((r) => r.university === 'ETH Zurich')).toBe(true);
   });
 
-  it('sorts favourite universities first', () => {
+  it('ignores favourites when a query or filter is present', () => {
     const { rows } = searchMappings(db, '', undefined, 'School of Computing', [
       'The University of Hong Kong',
     ]);
     expect(rows).toHaveLength(4);
-    expect(rows[0].university).toBe('The University of Hong Kong');
-  });
-
-  it('keeps favourite universities when truncating results', () => {
-    // Flood ETH Zurich (sorts before HKU) with enough mappings to fill the cap.
-    const insertPu = db.prepare(
-      'INSERT INTO pu_courses (university_id, code, title, units) VALUES (1, ?, ?, 6)',
-    );
-    const insertMapping = db.prepare(
-      "INSERT INTO mappings (faculty_id, pu_course_id, nus_course_code, pre_approved) VALUES (1, ?, 'CS3244', 0)",
-    );
-    db.transaction(() => {
-      for (let i = 0; i < SEARCH_LIMIT; i++) {
-        const { lastInsertRowid } = insertPu.run(`FILL-${i}`, `Filler Course ${i}`);
-        insertMapping.run(lastInsertRowid);
-      }
-    })();
-
-    const { rows, truncated } = searchMappings(db, '', undefined, 'School of Computing', [
-      'The University of Hong Kong',
-    ]);
-    expect(truncated).toBe(true);
-    expect(rows[0].university).toBe('The University of Hong Kong');
   });
 
   it('browses a whole faculty with an empty query', () => {

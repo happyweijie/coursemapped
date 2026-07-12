@@ -8,9 +8,6 @@ import type {
 } from '../src/lib/types.js';
 import { formatUniversityName, universitySortKey } from '../src/lib/universityName.js';
 
-/** Server-side cap on search results, so one query can't ship the whole table. */
-export const SEARCH_LIMIT = 1000;
-
 const BASE_SELECT = `
   SELECT u.name  AS university,
          p.code  AS puCode,
@@ -39,9 +36,8 @@ function toMappingRow(row: RawRow): MappingRow {
  * Tokenised substring search: every whitespace-separated token in `q` must
  * match at least one of NUS code/title, PU code/title, or university name.
  *
- * `favourites` (university names) sort first so their rows survive the
- * SEARCH_LIMIT cut; with no query and no filters they become the filter
- * itself, powering the favourites browse view on the empty search page.
+ * With no query and no filters, `favourites` (university names) become the
+ * filter, powering the favourites browse view on the empty search page.
  */
 export function searchMappings(
   db: Database.Database,
@@ -49,10 +45,10 @@ export function searchMappings(
   university?: string,
   faculty?: string,
   favourites: string[] = [],
-): { rows: MappingRow[]; truncated: boolean } {
+): { rows: MappingRow[] } {
   const tokens = q.trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0 && !university && !faculty && favourites.length === 0) {
-    return { rows: [], truncated: false };
+    return { rows: [] };
   }
 
   const conditions: string[] = [];
@@ -73,25 +69,16 @@ export function searchMappings(
     params.push(faculty);
   }
 
-  const favouritePlaceholders = favourites.map(() => '?').join(', ');
   if (conditions.length === 0) {
-    conditions.push(`u.name IN (${favouritePlaceholders})`);
-    params.push(...favourites);
-  }
-
-  let orderBy = 'u.name, n.code, p.code';
-  if (favourites.length > 0) {
-    orderBy = `CASE WHEN u.name IN (${favouritePlaceholders}) THEN 0 ELSE 1 END, ${orderBy}`;
+    conditions.push(`u.name IN (${favourites.map(() => '?').join(', ')})`);
     params.push(...favourites);
   }
 
   const sql = `${BASE_SELECT}
     WHERE ${conditions.join(' AND ')}
-    ORDER BY ${orderBy}
-    LIMIT ${SEARCH_LIMIT + 1}`;
+    ORDER BY u.name, n.code, p.code`;
   const raw = db.prepare(sql).all(...params) as RawRow[];
-  const truncated = raw.length > SEARCH_LIMIT;
-  return { rows: raw.slice(0, SEARCH_LIMIT).map(toMappingRow), truncated };
+  return { rows: raw.map(toMappingRow) };
 }
 
 export function listUniversities(db: Database.Database, faculty?: string): UniversitySummary[] {

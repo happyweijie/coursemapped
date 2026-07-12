@@ -14,8 +14,6 @@ export interface MappingRow {
 
 export interface SearchResponse {
   rows: MappingRow[];
-  /** True when the result set was cut off at the server limit. */
-  truncated: boolean;
 }
 
 export interface UniversitySummary {

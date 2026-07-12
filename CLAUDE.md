@@ -71,7 +71,8 @@ root checks all of them.
   falling back to the scraped title on 404.
 - **Search** (`searchMappings`) is tokenised AND-of-ORs: every whitespace
   token must LIKE-match one of NUS code/title, PU code/title, or university
-  name; results are capped at `SEARCH_LIMIT` with a `truncated` flag.
+  name. Results are returned in full; the client renders them incrementally
+  (`batchEndIndex` batches of ~100 rows, 5-row previews per group).
 
 ### Data pipeline
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { groupByUniversity } from './group';
+import { batchEndIndex, groupByUniversity } from './group';
 import type { MappingRow } from './types';
+import type { UniversityGroup } from './group';
 
 function row(university: string, puCode: string, nusCode: string): MappingRow {
   return {
@@ -70,5 +71,37 @@ describe('groupByUniversity', () => {
       'CS2102/A1',
       'CS3244/A2',
     ]);
+  });
+});
+
+describe('batchEndIndex', () => {
+  // Only rows.length matters to batching.
+  const groupsOf = (...sizes: number[]): UniversityGroup[] =>
+    sizes.map((size, i) => ({
+      university: `U${i}`,
+      favourite: false,
+      rows: Array.from({ length: size }, (_, j) => row(`U${i}`, `P${j}`, `N${j}`)),
+    }));
+
+  it('keeps the group that crosses the threshold whole', () => {
+    expect(batchEndIndex(groupsOf(60, 60, 60), 1)).toBe(2);
+  });
+
+  it('ends the batch after a single oversized group', () => {
+    expect(batchEndIndex(groupsOf(250, 10), 1)).toBe(1);
+  });
+
+  it('continues later batches from the previous boundary', () => {
+    const groups = groupsOf(60, 60, 60, 60);
+    expect(batchEndIndex(groups, 2)).toBe(4);
+    expect(batchEndIndex(groups, 3)).toBe(4);
+  });
+
+  it('stops at a batch boundary that lands exactly on the size', () => {
+    expect(batchEndIndex(groupsOf(100, 5), 1)).toBe(1);
+  });
+
+  it('returns 0 for no groups', () => {
+    expect(batchEndIndex([], 1)).toBe(0);
   });
 });
