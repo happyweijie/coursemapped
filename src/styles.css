@@ -469,6 +469,12 @@ a {
   color: var(--muted);
 }
 
+.empty-state-icon {
+  color: var(--muted);
+  display: block;
+  margin: 0 auto 1rem;
+}
+
 .empty-state h1 {
   color: var(--text);
   font-size: 1.4rem;

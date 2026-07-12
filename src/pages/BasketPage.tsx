@@ -1,4 +1,4 @@
-import { Minus, Trash2 } from 'lucide-react';
+import { Minus, ShoppingBasket, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import CopyLinkButton from '../components/CopyLinkButton';
@@ -60,6 +60,7 @@ export default function BasketPage() {
   if (basket.length === 0) {
     return (
       <div className="empty-state">
+        <ShoppingBasket size={48} className="empty-state-icon" aria-hidden />
         <h1>Your basket is empty</h1>
         <p>
           <Link to="/">Search for a course</Link> and add mappings you are interested in. Your
