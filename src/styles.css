@@ -71,6 +71,9 @@ a {
   padding: 1.5rem 1rem 3rem;
   flex: 1;
   width: 100%; /* auto cross-axis margins disable flex stretch, so span explicitly */
+  /* Column flex so children can vertically centre themselves (empty states). */
+  display: flex;
+  flex-direction: column;
 }
 
 .site-footer {
@@ -555,7 +558,9 @@ a {
 
 .empty-state {
   text-align: center;
-  margin: 4rem 0;
+  /* Centre between header and footer, nudged slightly above true centre. */
+  margin: auto 0;
+  transform: translateY(-4vh);
   color: var(--muted);
 }
 
